@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الملقّن العربي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#F3F1EC; --ink-dim:#8F948A; --ground:#0A0C0A; --surface:#151814;
+    --line:#2A3027; --accent:#D8A23B; --live:#7FB069; --pad:20px;
+    --script:"thmanyah sans","IBM Plex Sans Arabic","SF Arabic","Geeza Pro",system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;padding:0}
+  body{background:var(--ground); color:var(--ink); font-family:var(--script); direction:rtl; overflow:hidden; -webkit-user-select:none; user-select:none}
+  #flow[contenteditable="true"]{-webkit-user-select:text; user-select:text}
+
+  .bar{
+    position:fixed; inset-block-start:0; inset-inline:0; z-index:10;
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
+    padding:10px var(--pad);
+    background:color-mix(in srgb, var(--surface) 94%, transparent);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border-block-end:1px solid var(--line);
+  }
+  button{
+    font:inherit; font-size:14px; font-weight:500; color:var(--ink); background:transparent;
+    border:1px solid var(--line); border-radius:6px; padding:7px 14px; cursor:pointer;
+  }
+  button:hover{border-color:var(--accent)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  #play{background:var(--accent); color:#15120A; border-color:var(--accent); min-width:104px; font-weight:700}
+  #play[data-on="1"]{background:var(--live); border-color:var(--live)}
+  #edit[data-on="1"]{background:var(--accent); color:#15120A; border-color:var(--accent)}
+  #mir[data-on="1"],#pin[data-on="1"]{border-color:var(--accent); color:var(--accent)}
+  #help{width:36px; padding-inline:0; font-weight:700}
+  .grp{display:flex; align-items:center; gap:8px}
+  .grp label{font-size:12px; color:var(--ink-dim); letter-spacing:.04em}
+  .val{font-size:12px; color:var(--ink-dim); font-variant-numeric:tabular-nums; min-width:28px; text-align:center}
+  input[type=range]{accent-color:var(--accent); width:92px}
+  .clock{margin-inline-start:auto; font-size:15px; font-variant-numeric:tabular-nums; color:var(--ink-dim); letter-spacing:.06em}
+
+  #stage{position:fixed; inset:0; padding-block-start:var(--barh,64px); overflow-y:auto; scrollbar-width:none}
+  #stage::-webkit-scrollbar{display:none}
+  #flow{
+    max-width:22ch; margin-inline:auto; padding-inline:var(--pad);
+    padding-block:max(12px, calc(40vh - var(--barh,64px) - .2em)) 70vh;
+    font-size:var(--fs,52px); line-height:1.62; font-weight:500; text-wrap:pretty; outline:none;
+  }
+  #flow.mirror{transform:scaleX(-1)}
+  #flow[contenteditable="true"]{outline:2px dashed color-mix(in srgb, var(--accent) 55%, transparent); outline-offset:18px; border-radius:4px}
+  #flow p{margin:0 0 .75em}
+  #flow .note{color:var(--ink-dim); font-size:.42em; line-height:1.7; margin-block:.2em 1.2em}
+  #flow .end{font-size:15px; font-weight:700; color:var(--accent); margin-block:1.9em 0; padding-block-start:10px; border-block-start:1px solid var(--line); letter-spacing:.04em}
+
+  .marker{position:fixed; inset-inline:0; inset-block-start:40vh; z-index:5; pointer-events:none; border-block-start:1px solid color-mix(in srgb, var(--accent) 45%, transparent)}
+  .marker::before,.marker::after{content:""; position:absolute; inset-block-start:-6px; border-block:6px solid transparent}
+  .marker::before{inset-inline-start:0; border-inline-start:9px solid var(--accent)}
+  .marker::after{inset-inline-end:0; border-inline-end:9px solid var(--accent)}
+
+  .toast{position:fixed; inset-block-end:22px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:9px 18px; font-size:14px; color:var(--ink); z-index:30; max-width:calc(100% - 32px)}
+
+  dialog{width:min(560px, calc(100% - 32px)); max-height:calc(100% - 48px); padding:0; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:var(--script)}
+  dialog::backdrop{background:rgba(5,6,5,.72); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+  .dlg{padding:26px 26px 22px; display:grid; gap:18px}
+  .dlg h2{margin:0; font-size:24px; font-weight:700; line-height:1.3}
+  .dlg h2 span{color:var(--accent)}
+  .dlg .lede{margin:0; color:var(--ink-dim); font-size:15px; line-height:1.7}
+  .steps{margin:0; padding:0; list-style:none; display:grid; gap:12px; counter-reset:s}
+  .steps li{display:grid; grid-template-columns:28px 1fr; gap:10px; align-items:start; font-size:15px; line-height:1.65; counter-increment:s}
+  .steps li::before{content:counter(s); display:grid; place-items:center; width:26px; height:26px; border-radius:50%; border:1px solid var(--accent); color:var(--accent); font-size:13px; font-weight:700; font-variant-numeric:tabular-nums}
+  .keys{display:grid; grid-template-columns:auto 1fr; gap:8px 14px; align-items:center; font-size:14px; color:var(--ink-dim); padding-block-start:14px; border-block-start:1px solid var(--line)}
+  kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--ink); border:1px solid var(--line); border-block-end-width:2px; border-radius:5px; padding:2px 8px; justify-self:start; white-space:nowrap}
+  .privacy{margin:0; font-size:13.5px; line-height:1.7; color:var(--ink-dim); padding:10px 12px; border-radius:6px; background:color-mix(in srgb, var(--live) 9%, transparent)}
+  .privacy b{color:var(--live)}
+  .dlg-foot{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .dlg-foot small{color:var(--ink-dim); font-size:12.5px}
+  .dlg-foot a{color:var(--accent); text-decoration:none}
+  #go{background:var(--accent); color:#15120A; border-color:var(--accent); font-weight:700; padding-inline:22px}
+  @media (max-width:560px){ #flow{font-size:calc(var(--fs,52px) * .62)} input[type=range]{width:74px} }
+</style>
+</head>
+<body>
+<div class="bar" id="bar">
+  <button id="play" data-on="0">تشغيل</button>
+  <button id="reset">من البداية</button>
+  <div class="grp"><label for="spd">السرعة</label><input id="spd" type="range" min="10" max="140" step="2" value="46"><span class="val" id="spdv">46</span></div>
+  <div class="grp"><label for="siz">الخط</label><input id="siz" type="range" min="28" max="88" step="2" value="52"><span class="val" id="sizv">52</span></div>
+  <button id="mir" data-on="0">عكس المرآة</button>
+  <button id="pin" data-on="0" hidden>فوق النوافذ</button>
+  <button id="edit" data-on="0">تحرير النص</button>
+  <button id="revert" hidden>استرجاع النص التجريبي</button>
+  <button id="help" aria-label="طريقة الاستخدام" title="طريقة الاستخدام">؟</button>
+  <div class="clock" id="clock">00:00</div>
+</div>
+
+<div class="marker"></div>
+
+<div id="stage"><div id="flow">
+<p>أهلاً فيك في الملقّن العربي.</p>
+<p class="note">هذا نص تجريبي. اضغط «تحرير النص» فوق، امسحه، والصق نصك مكانه.</p>
+<p>اقرأ دائماً السطر اللي عند الخط الذهبي، وخل عينك قريبة من الكاميرا.</p>
+<p>الملقّن يمشي لحاله بسرعة ثابتة، وتقدر تسرّعه أو تبطّئه وأنت تقرأ بالأسهم.</p>
+<p>إذا تعثرت في جملة، وقّف بزر المسافة، خذ نفس، وكمّل من نفس المكان.</p>
+<p>ولو تصوّر بالكاميرا فوق الشاشة، شغّل «فوق النوافذ» وخل نافذة الملقّن صغيرة قريبة من العدسة.</p>
+<p>الشاشة تبقى مضاءة طول التشغيل، فما تنطفي عليك في نص التصوير.</p>
+<p>ونصك يُحفظ على جهازك أنت فقط، وما يطلع لأي أحد.</p>
+<p>جرّب الحين: اضغط «تشغيل» واقرأ معي بصوت عالي.</p>
+<p>بالتوفيق في تصويرك.</p>
+<div class="end">انتهى</div>
+</div></div>
+
+<dialog id="guide" aria-labelledby="gtitle">
+  <div class="dlg">
+    <h2 id="gtitle">الملقّن <span>العربي</span></h2>
+    <p class="lede">شاشة تمرّر نصك ببطء وأنت تصوّر، عشان تتكلم للكاميرا بدون ما تحفظ.</p>
+    <ol class="steps">
+      <li><span>اضغط <b>«تحرير النص»</b>، امسح النص التجريبي، والصق نصك. اضغط <b>«إنهاء التحرير»</b> ليُحفظ.</span></li>
+      <li><span>اضبط <b>السرعة</b> و<b>حجم الخط</b> من الشريط فوق.</span></li>
+      <li><span>اضغط <b>«تشغيل»</b> واقرأ السطر اللي عند الخط الذهبي.</span></li>
+      <li><span>تصوّر بكاميرا الماك؟ فعّل <b>«فوق النوافذ»</b> وقرّب النافذة من العدسة. وعبر زجاج ملقّن فعّل <b>«عكس المرآة»</b>.</span></li>
+    </ol>
+    <div class="keys">
+      <kbd>مسافة</kbd><span>تشغيل / إيقاف</span>
+      <kbd>↑ ↓</kbd><span>أسرع / أبطأ أثناء القراءة</span>
+      <kbd>⌘ + / ⌘ −</kbd><span>تكبير / تصغير الخط</span>
+      <kbd>⌘ ⇧ T</kbd><span>فوق كل النوافذ</span>
+      <kbd>⌃ ⌘ F</kbd><span>ملء الشاشة</span>
+    </div>
+    <p class="privacy"><b>نصك يبقى عندك.</b> يُحفظ على جهازك فقط، ولا يُرسل لأي مكان.</p>
+    <div class="dlg-foot"><small>أداة مجانية من يحيى · <a href="https://github.com/aldoraibi/mulaqqin">المصدر والتحديثات</a></small><button id="go">ابدأ</button></div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var stage=$('stage'),flow=$('flow'),bar=$('bar');
+  var play=$('play'),reset=$('reset'),spd=$('spd'),spdv=$('spdv'),siz=$('siz'),sizv=$('sizv');
+  var mir=$('mir'),pin=$('pin'),clock=$('clock'),edit=$('edit'),revert=$('revert');
+  var guide=$('guide'),help=$('help'),go=$('go');
+  var on=false,last=0,carry=0,t0=0,elapsed=0,raf=null;
+  var KEY='mulaqqin-text-v1', PREF='mulaqqin-prefs-v1', SEEN='mulaqqin-seen-v1';
+  var ORIGINAL=flow.innerHTML;
+  var native=window.webkit && window.webkit.messageHandlers;
+  function post(n,v){ try{ if(native && native[n]) native[n].postMessage(v); }catch(e){} }
+
+  function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+  function del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  function toast(msg){ var d=document.createElement('div'); d.className='toast'; d.textContent=msg; document.body.appendChild(d); setTimeout(function(){ d.remove(); },1800); }
+
+  function fitBar(){ document.documentElement.style.setProperty('--barh', bar.offsetHeight+'px'); }
+  fitBar();
+  if('ResizeObserver' in window) new ResizeObserver(fitBar).observe(bar); else window.addEventListener('resize',fitBar);
+
+  var saved=get(KEY);
+  if(saved){ flow.innerHTML=saved; revert.hidden=false; }
+  try{
+    var p=JSON.parse(get(PREF)||'{}');
+    if(p.spd) spd.value=p.spd;
+    if(p.siz) siz.value=p.siz;
+    if(p.mir){ flow.classList.add('mirror'); mir.dataset.on='1'; }
+  }catch(e){}
+  function applySize(){ sizv.textContent=siz.value; flow.style.setProperty('--fs', siz.value+'px'); }
+  spdv.textContent=spd.value; applySize();
+  function savePrefs(){ set(PREF, JSON.stringify({spd:+spd.value, siz:+siz.value, mir:flow.classList.contains('mirror')})); }
+
+  // إبقاء الشاشة مضاءة: من التطبيق نفسه، أو من المتصفح إن دعمه
+  var wl=null;
+  function wake(onoff){
+    post('wake', onoff);
+    if(!('wakeLock' in navigator)) return;
+    if(onoff && !wl) navigator.wakeLock.request('screen').then(function(l){ wl=l; l.addEventListener('release',function(){ wl=null; }); }).catch(function(){});
+    if(!onoff && wl){ wl.release().catch(function(){}); wl=null; }
+  }
+
+  function fmt(s){var m=Math.floor(s/60),r=Math.floor(s%60); return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+  function tick(now){
+    if(!on) return;
+    var dt=(now-last)/1000; last=now;
+    carry += (+spd.value)*dt;
+    var step=Math.floor(carry);
+    if(step){ stage.scrollTop += step; carry-=step; }
+    elapsed=(now-t0)/1000; clock.textContent=fmt(elapsed);
+    if(stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2){ stop(); return; }
+    raf=requestAnimationFrame(tick);
+  }
+  function start(){
+    if(flow.getAttribute('contenteditable')==='true') finishEdit();
+    on=true; play.textContent='إيقاف'; play.dataset.on='1';
+    last=performance.now(); t0=last-elapsed*1000;
+    wake(true); raf=requestAnimationFrame(tick);
+  }
+  function stop(){
+    on=false; play.textContent='تشغيل'; play.dataset.on='0';
+    if(raf) cancelAnimationFrame(raf); wake(false);
+  }
+  function toStart(){ stop(); stage.scrollTop=0; carry=0; elapsed=0; clock.textContent='00:00'; }
+
+  play.addEventListener('click',function(){ on?stop():start(); });
+  reset.addEventListener('click',toStart);
+  spd.addEventListener('input',function(){ spdv.textContent=spd.value; savePrefs(); });
+  siz.addEventListener('input',function(){ applySize(); savePrefs(); });
+  mir.addEventListener('click',function(){ var m=flow.classList.toggle('mirror'); mir.dataset.on=m?'1':'0'; savePrefs(); });
+
+  if(native && native.pin){ pin.hidden=false; pin.addEventListener('click',function(){ post('pin',true); }); }
+  window.__setPinned=function(v){ pin.dataset.on=v?'1':'0'; };
+  window.__size=function(d){ siz.value=Math.max(28,Math.min(88,+siz.value+d)); applySize(); savePrefs(); };
+
+  function startEdit(){ stop(); flow.setAttribute('contenteditable','true'); edit.textContent='إنهاء التحرير'; edit.dataset.on='1'; flow.focus(); }
+  function finishEdit(){
+    flow.setAttribute('contenteditable','false'); edit.textContent='تحرير النص'; edit.dataset.on='0';
+    if(set(KEY, flow.innerHTML)){ revert.hidden=false; toast('حُفظ نصك'); } else toast('تعذّر الحفظ — انسخ نصك احتياطاً');
+  }
+  edit.addEventListener('click',function(){ flow.getAttribute('contenteditable')==='true' ? finishEdit() : startEdit(); });
+
+  flow.addEventListener('paste',function(e){
+    var t=e.clipboardData; if(!t) return;
+    e.preventDefault();
+    var html=(t.getData('text/plain')||'').split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean)
+      .map(function(l){ var d=document.createElement('p'); d.textContent=l; return d.outerHTML; }).join('');
+    document.execCommand('insertHTML', false, html);
+  });
+
+  var armed=false, armTimer=null;
+  revert.addEventListener('click',function(){
+    if(!armed){ armed=true; revert.textContent='اضغط مرة ثانية لمسح نصك'; clearTimeout(armTimer);
+      armTimer=setTimeout(function(){ armed=false; revert.textContent='استرجاع النص التجريبي'; },5000); return; }
+    armed=false; revert.textContent='استرجاع النص التجريبي';
+    flow.innerHTML=ORIGINAL; del(KEY); revert.hidden=true; toStart(); toast('رجع النص التجريبي');
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(flow.getAttribute('contenteditable')==='true' || guide.open) return;
+    if(e.target && e.target.tagName==='BUTTON' && (e.code==='Space'||e.key==='Enter')) return;
+    if(e.code==='Space'){ e.preventDefault(); on?stop():start(); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); spd.value=Math.min(140,+spd.value+4); spdv.textContent=spd.value; savePrefs(); }
+    if(e.key==='ArrowDown'){ e.preventDefault(); spd.value=Math.max(10,+spd.value-4); spdv.textContent=spd.value; savePrefs(); }
+  });
+
+  function openGuide(){ stop(); try{ guide.showModal(); }catch(e){ guide.setAttribute('open',''); } }
+  function closeGuide(){ try{ guide.close(); }catch(e){ guide.removeAttribute('open'); } set(SEEN,'1'); }
+  window.__openGuide=openGuide;
+  help.addEventListener('click',openGuide);
+  go.addEventListener('click',closeGuide);
+  guide.addEventListener('close',function(){ set(SEEN,'1'); });
+  guide.addEventListener('click',function(e){ if(e.target===guide) closeGuide(); });
+  if(!get(SEEN)) openGuide();
+})();
+</script>
+</body>
+</html>
