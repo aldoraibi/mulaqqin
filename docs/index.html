@@ -19,6 +19,14 @@
     --script:"thmanyah sans","IBM Plex Sans Arabic",system-ui,sans-serif;
     color-scheme:dark;
   }
+  :root[data-look="light"]{
+    --ink:#14160F; --ink-dim:#5C6157; --ground:#F7F5EF; --surface:#EAE7DE;
+    --line:#CFCBBF; --accent:#8A5E10; --live:#3C7430; color-scheme:light;
+  }
+  :root[data-look="amber"]{ --ink:#FFD45C; --ink-dim:#8C7940; --ground:#08090A; }
+  :root[data-look="green"]{ --ink:#8FE388; --ink-dim:#4E7A4B; --ground:#07090A; }
+  :root[data-look="light"] #play,
+  :root[data-look="light"] #edit[data-on="1"]{color:#FFF6E6}
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -168,6 +176,7 @@
     <span class="val" id="sizv">52</span>
   </div>
   <button id="mir" data-on="0">عكس المرآة</button>
+  <button id="look">الألوان: داكن</button>
   <button id="edit" data-on="0">تحرير النص</button>
   <button id="revert" hidden>استرجاع النص التجريبي</button>
   <button id="help" aria-label="طريقة الاستخدام" title="طريقة الاستخدام">؟</button>
@@ -219,11 +228,12 @@
   var $=function(id){return document.getElementById(id);};
   var stage=$('stage'),flow=$('flow'),bar=$('bar');
   var play=$('play'),reset=$('reset'),spd=$('spd'),spdv=$('spdv'),siz=$('siz'),sizv=$('sizv');
-  var mir=$('mir'),clock=$('clock'),edit=$('edit'),revert=$('revert');
+  var mir=$('mir'),look=$('look'),clock=$('clock'),edit=$('edit'),revert=$('revert');
   var guide=$('guide'),help=$('help'),go=$('go');
   var on=false,last=0,carry=0,t0=0,elapsed=0,raf=null;
   var KEY='mulaqqin-text-v1', PREF='mulaqqin-prefs-v1', SEEN='mulaqqin-seen-v1';
   var ORIGINAL=flow.innerHTML;
+  var pendingLook=null;
 
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
@@ -248,10 +258,11 @@
     if(p.spd){ spd.value=p.spd; }
     if(p.siz){ siz.value=p.siz; }
     if(p.mir){ flow.classList.add('mirror'); mir.dataset.on='1'; }
+    if(p.look) pendingLook=p.look;
   }catch(e){}
   spdv.textContent=spd.value; sizv.textContent=siz.value;
   flow.style.setProperty('--fs', siz.value+'px');
-  function savePrefs(){ set(PREF, JSON.stringify({spd:+spd.value, siz:+siz.value, mir:flow.classList.contains('mirror')})); }
+  function savePrefs(){ set(PREF, JSON.stringify({spd:+spd.value, siz:+siz.value, mir:flow.classList.contains('mirror'), look:(look.dataset.look||'dark')})); }
 
   // إبقاء الشاشة مضاءة أثناء التشغيل
   var wl=null;
@@ -294,6 +305,23 @@
   });
 
   // التحرير
+
+  // ألوان النص والخلفية
+  var LOOKS=[['dark','داكن'],['light','فاتح'],['amber','عنبري'],['green','أخضر']];
+  function applyLook(name){
+    var i=0; for(var k=0;k<LOOKS.length;k++) if(LOOKS[k][0]===name) i=k;
+    if(LOOKS[i][0]==='dark') document.documentElement.removeAttribute('data-look');
+    else document.documentElement.setAttribute('data-look', LOOKS[i][0]);
+    look.textContent='الألوان: '+LOOKS[i][1];
+    look.dataset.look=LOOKS[i][0];
+  }
+  look.addEventListener('click',function(){
+    var cur=look.dataset.look||'dark', i=0;
+    for(var k=0;k<LOOKS.length;k++) if(LOOKS[k][0]===cur) i=k;
+    applyLook(LOOKS[(i+1)%LOOKS.length][0]); savePrefs();
+  });
+  applyLook(pendingLook||'dark');
+
   function startEdit(){
     stop(); flow.setAttribute('contenteditable','true');
     edit.textContent='إنهاء التحرير'; edit.dataset.on='1'; flow.focus();
