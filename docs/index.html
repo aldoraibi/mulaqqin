@@ -3,180 +3,198 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="ملقّن نصوص عربي مجاني للتصوير: تمرير تلقائي، تحكم بالسرعة والخط، وضع مرآة، ونصك يبقى في جهازك.">
+<meta name="description" content="ملقّن نصوص عربي مجاني للتصوير: تمرير تلقائي، تحكم بالسرعة والخط والألوان، وضع مرآة، ونصك يبقى في جهازك.">
 <title>الملقّن العربي</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Noto+Naskh+Arabic:wght@500;700&display=swap">
 <style>
+  /* ===== هوية «منتصف الليل» ===== */
   :root{
-    --ink:#F3F1EC;
-    --ink-dim:#8F948A;
-    --ground:#0A0C0A;
-    --surface:#151814;
-    --line:#2A3027;
-    --accent:#D8A23B;
-    --live:#7FB069;
+    --deep:#0E131C;
+    --panel:#1E2430;
+    --ink:#EEF2F8;
+    --ink-2:rgba(226,233,245,.60);
+    --faint:rgba(226,233,245,.34);
+    --line:rgba(190,205,230,.12);
+    --accent:#DCE4F0;
+    --on-accent:#1E2430;
+    --warn:#FFB4A8;
+    --hover:rgba(255,255,255,.06);
+    --glass:color-mix(in srgb, var(--panel) 72%, transparent);
     --pad:20px;
-    --script:"thmanyah sans","IBM Plex Sans Arabic",system-ui,sans-serif;
+    --ui:"thmanyah sans","IBM Plex Sans Arabic",system-ui,sans-serif;
+    --display:"thmanyah serif display","Noto Naskh Arabic",Georgia,serif;
     color-scheme:dark;
   }
   :root[data-look="light"]{
-    --ink:#14160F; --ink-dim:#5C6157; --ground:#F7F5EF; --surface:#EAE7DE;
-    --line:#CFCBBF; --accent:#8A5E10; --live:#3C7430; color-scheme:light;
+    --deep:#F4F6FA; --panel:#E7EBF2; --ink:#161B24; --ink-2:rgba(22,27,36,.62);
+    --faint:rgba(22,27,36,.42); --line:rgba(30,36,48,.16); --accent:#2B3444; --on-accent:#F4F6FA;
+    --hover:rgba(14,19,28,.06); color-scheme:light;
   }
-  :root[data-look="amber"]{ --ink:#FFD45C; --ink-dim:#8C7940; --ground:#08090A; }
-  :root[data-look="green"]{ --ink:#8FE388; --ink-dim:#4E7A4B; --ground:#07090A; }
-  :root[data-look="light"] #play,
-  :root[data-look="light"] #edit[data-on="1"]{color:#FFF6E6}
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    background:var(--ground); color:var(--ink);
-    font-family:var(--script); direction:rtl; margin:0; overflow:hidden;
-  }
+  :root[data-look="amber"]{ --ink:#FFD45C; --ink-2:rgba(255,212,92,.62); --deep:#08090A; }
+  :root[data-look="green"]{ --ink:#8FE388; --ink-2:rgba(143,227,136,.62); --deep:#07090A; }
 
-  /* ===== شريط التحكم ===== */
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;padding:0}
+  body{
+    background:var(--deep); color:var(--ink); font-family:var(--ui);
+    direction:rtl; overflow:hidden; -webkit-user-select:none; user-select:none;
+  }
+  body::before,body::after{
+    content:""; position:fixed; z-index:0; pointer-events:none;
+    width:70vmax; height:70vmax; border-radius:50%; filter:blur(120px);
+  }
+  body::before{ background:rgba(46,58,80,.90); inset-block-start:-26vmax; inset-inline-end:-18vmax }
+  body::after{ background:rgba(62,74,94,.55); inset-block-end:-30vmax; inset-inline-start:-20vmax }
+  :root[data-look="light"] body::before{background:rgba(190,205,230,.55)}
+  :root[data-look="light"] body::after{background:rgba(160,175,200,.35)}
+  #flow[contenteditable="true"]{-webkit-user-select:text; user-select:text}
+
+  /* ===== شريط التحكم (زجاج) ===== */
   .bar{
     position:fixed; inset-block-start:0; inset-inline:0; z-index:10;
     display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
-    padding:calc(10px + env(safe-area-inset-top,0px)) var(--pad) 10px;
-    background:color-mix(in srgb, var(--surface) 94%, transparent);
-    backdrop-filter:blur(8px);
+    padding:calc(12px + env(safe-area-inset-top,0px)) var(--pad) 12px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(24px) saturate(1.4); backdrop-filter:blur(24px) saturate(1.4);
     border-block-end:1px solid var(--line);
   }
   button{
-    font:inherit; font-size:14px; font-weight:500;
-    color:var(--ink); background:transparent;
-    border:1px solid var(--line); border-radius:6px;
-    padding:7px 14px; cursor:pointer;
+    font:inherit; font-size:14px; font-weight:500; color:var(--ink);
+    background:color-mix(in srgb, var(--panel) 55%, transparent);
+    border:1px solid var(--line); border-radius:12px;
+    padding:8px 16px; cursor:pointer; transition:background .12s, border-color .12s;
   }
-  button:hover{border-color:var(--accent)}
+  button:hover{background:var(--hover); border-color:color-mix(in srgb, var(--accent) 40%, transparent)}
   button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  #play{background:var(--accent); color:#15120A; border-color:var(--accent); min-width:104px; font-weight:700}
-  #play[data-on="1"]{background:var(--live); border-color:var(--live)}
-  #edit[data-on="1"]{background:var(--accent); color:#15120A; border-color:var(--accent)}
-  #mir[data-on="1"]{border-color:var(--accent); color:var(--accent)}
-  #help{width:36px; padding-inline:0; font-weight:700}
+  #play{background:var(--accent); color:var(--on-accent); border-color:var(--accent); min-width:104px; font-weight:700}
+  #play:hover{background:var(--accent)}
+  #play[data-on="1"]{background:color-mix(in srgb, var(--accent) 34%, transparent); color:var(--ink)}
+  #edit[data-on="1"],#mir[data-on="1"],#pin[data-on="1"]{
+    background:color-mix(in srgb, var(--accent) 22%, transparent);
+    border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  #help{width:28px; height:28px; padding:0; border-radius:50%; font-weight:700; line-height:1}
   .grp{display:flex; align-items:center; gap:8px}
-  .grp label{font-size:12px; color:var(--ink-dim); letter-spacing:.04em}
-  .val{font-size:12px; color:var(--ink-dim); font-variant-numeric:tabular-nums; min-width:28px; text-align:center}
+  .grp label{font-size:12px; color:var(--ink-2); letter-spacing:.04em}
+  .val{font-size:12px; color:var(--ink-2); font-variant-numeric:tabular-nums; min-width:28px; text-align:center}
   input[type=range]{accent-color:var(--accent); width:92px}
   .clock{
-    margin-inline-start:auto; font-size:15px; font-variant-numeric:tabular-nums;
-    color:var(--ink-dim); letter-spacing:.06em;
+    margin-inline-start:auto; font-family:var(--display); font-size:17px; font-weight:500;
+    font-variant-numeric:tabular-nums; color:var(--ink-2); letter-spacing:.06em;
   }
 
   /* ===== منطقة القراءة ===== */
-  #stage{
-    position:fixed; inset:0; padding-block-start:var(--barh,64px);
-    overflow-y:auto; scrollbar-width:none;
-  }
+  #stage{position:fixed; inset:0; z-index:1; padding-block-start:var(--barh,68px); overflow-y:auto; scrollbar-width:none}
   #stage::-webkit-scrollbar{display:none}
   #flow{
-    max-width:22ch; margin-inline:auto;
-    padding-inline:var(--pad); padding-block:max(12px, calc(40vh - var(--barh,64px) - .2em)) 70vh;
-    font-size:var(--fs,52px); line-height:1.62; font-weight:500;
-    text-wrap:pretty;
+    max-width:22ch; margin-inline:auto; padding-inline:var(--pad);
+    padding-block:max(12px, calc(40vh - var(--barh,68px) - .2em)) 70vh;
+    font-size:var(--fs,52px); line-height:1.62; font-weight:500; text-wrap:pretty; outline:none;
   }
   #flow.mirror{transform:scaleX(-1)}
   #flow[contenteditable="true"]{
-    outline:2px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-    outline-offset:18px; border-radius:4px;
+    outline:2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+    outline-offset:18px; border-radius:12px;
   }
   #flow p{margin:0 0 .75em}
-  #flow .note{color:var(--ink-dim); font-size:.42em; line-height:1.7; margin-block:.2em 1.2em}
+  #flow .note{color:var(--ink-2); font-size:.42em; line-height:1.7; margin-block:.2em 1.2em}
   #flow .end{
-    font-size:15px; font-weight:700; color:var(--accent);
-    margin-block:1.9em 0; padding-block-start:10px;
-    border-block-start:1px solid var(--line); letter-spacing:.04em;
+    font-family:var(--display); font-size:15px; font-weight:500; color:var(--ink-2);
+    margin-block:1.9em 0; padding-block-start:10px; border-block-start:1px solid var(--line); letter-spacing:.04em;
   }
 
-  /* خط القراءة */
   .marker{
     position:fixed; inset-inline:0; inset-block-start:40vh; z-index:5; pointer-events:none;
     border-block-start:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   }
-  .marker::before,.marker::after{
-    content:""; position:absolute; inset-block-start:-6px; border-block:6px solid transparent;
-  }
+  .marker::before,.marker::after{content:""; position:absolute; inset-block-start:-6px; border-block:6px solid transparent}
   .marker::before{inset-inline-start:0; border-inline-start:9px solid var(--accent)}
   .marker::after{inset-inline-end:0; border-inline-end:9px solid var(--accent)}
 
-  /* تنبيه قصير */
-  .toast{
-    position:fixed; inset-block-end:calc(22px + env(safe-area-inset-bottom,0px)); left:50%;
-    transform:translateX(-50%);
-    background:var(--surface); border:1px solid var(--line); border-radius:6px;
-    padding:9px 18px; font-size:14px; color:var(--ink); z-index:30; max-width:calc(100% - 32px);
+  /* ===== التوقيع ===== */
+  .credit{
+    position:fixed; inset-block-end:calc(14px + env(safe-area-inset-bottom,0px)); inset-inline:0; z-index:6;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    color:var(--faint); font-size:12px; font-weight:500; pointer-events:none; transition:opacity .25s;
   }
+  body[data-playing="1"] .credit{opacity:0}
+  .yahya-signature{height:10px; width:auto; direction:ltr; display:block}
+  .dlg-foot .credit{position:static; justify-content:flex-start; padding:0; opacity:1}
+
+  .toast{
+    position:fixed; inset-block-end:calc(54px + env(safe-area-inset-bottom,0px)); left:50%;
+    transform:translateX(-50%); z-index:30; max-width:calc(100% - 32px);
+    background:var(--glass); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px);
+    border:1px solid var(--line); border-radius:12px;
+    padding:10px 18px; font-size:14px; color:var(--ink);
+  }
+  .toast[data-warn="1"]{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 45%, transparent)}
 
   /* ===== نافذة طريقة الاستخدام ===== */
   dialog{
     width:min(560px, calc(100% - 32px)); max-height:calc(100% - 48px);
-    padding:0; border:1px solid var(--line); border-radius:10px;
-    background:var(--surface); color:var(--ink); font-family:var(--script);
+    padding:0; border:1px solid var(--line); border-radius:20px;
+    background:var(--glass); -webkit-backdrop-filter:blur(32px) saturate(1.4); backdrop-filter:blur(32px) saturate(1.4);
+    color:var(--ink); font-family:var(--ui);
   }
-  dialog::backdrop{background:rgba(5,6,5,.72); backdrop-filter:blur(3px)}
-  .dlg{padding:26px 26px 22px; display:grid; gap:18px}
-  .dlg h2{margin:0; font-size:24px; font-weight:700; line-height:1.3}
-  .dlg h2 span{color:var(--accent)}
-  .dlg .lede{margin:0; color:var(--ink-dim); font-size:15px; line-height:1.7}
-  .steps{margin:0; padding:0; list-style:none; display:grid; gap:12px; counter-reset:s}
+  dialog::backdrop{background:rgba(6,9,14,.66); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px)}
+  .dlg{padding:26px 26px 20px; display:grid; gap:16px}
+  .dlg h2{margin:0; font-family:var(--display); font-size:26px; font-weight:500; line-height:1.3}
+  .dlg h2 span{color:var(--ink-2)}
+  .dlg .lede{margin:0; color:var(--ink-2); font-size:15px; line-height:1.7}
+  .steps{margin:0; padding:0; list-style:none; display:grid; gap:4px; counter-reset:s}
   .steps li{
     display:grid; grid-template-columns:28px 1fr; gap:10px; align-items:start;
-    font-size:15px; line-height:1.65; counter-increment:s;
+    font-size:15px; line-height:1.65; counter-increment:s; padding:8px 10px; border-radius:12px;
   }
+  .steps li:hover{background:var(--hover)}
   .steps li::before{
     content:counter(s); display:grid; place-items:center; width:26px; height:26px;
-    border-radius:50%; border:1px solid var(--accent); color:var(--accent);
-    font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
+    border-radius:8px; background:color-mix(in srgb, var(--accent) 16%, transparent);
+    border:1px solid rgba(255,255,255,.22);
+    color:var(--ink); font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
   }
-  .steps b{color:var(--ink)}
   .keys{
     display:grid; grid-template-columns:auto 1fr; gap:8px 14px; align-items:center;
-    font-size:14px; color:var(--ink-dim);
-    padding-block-start:14px; border-block-start:1px solid var(--line);
+    font-size:14px; color:var(--ink-2); padding-block-start:14px; border-block-start:1px solid var(--line);
   }
   kbd{
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--ink);
-    border:1px solid var(--line); border-block-end-width:2px; border-radius:5px;
+    border:1px solid var(--line); border-block-end-width:2px; border-radius:8px;
     padding:2px 8px; justify-self:start; white-space:nowrap;
+    background:color-mix(in srgb, var(--panel) 60%, transparent);
   }
   .privacy{
-    margin:0; font-size:13.5px; line-height:1.7; color:var(--ink-dim);
-    padding:10px 12px; border-radius:6px; background:color-mix(in srgb, var(--live) 9%, transparent);
+    margin:0; font-size:13.5px; line-height:1.7; color:var(--ink-2);
+    padding:12px 14px; border-radius:12px;
+    background:color-mix(in srgb, var(--panel) 55%, transparent); border:1px solid var(--line);
   }
-  .privacy b{color:var(--live)}
-  .dlg-foot{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
-  .dlg-foot small{color:var(--ink-dim); font-size:12.5px}
-  .dlg-foot a{color:var(--accent); text-decoration:none}
-  .dlg-foot a:hover{text-decoration:underline}
-  #go{background:var(--accent); color:#15120A; border-color:var(--accent); font-weight:700; padding-inline:22px}
+  .privacy b{color:var(--ink)}
+  .dlg-foot{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    padding-block-start:14px; border-block-start:1px solid var(--line)}
+  .links{color:var(--faint); font-size:12.5px; text-align:center; display:block}
+  .links a{color:var(--ink-2); text-decoration:none}
+  .links a:hover{text-decoration:underline}
+  #go{background:var(--accent); color:var(--on-accent); border-color:var(--accent); font-weight:700; padding-inline:22px}
 
   @media (max-width:560px){
     #flow{font-size:calc(var(--fs,52px) * .62)}
     input[type=range]{width:74px}
-    .dlg{padding:20px 18px 18px}
+    .dlg{padding:20px 18px 16px}
+    .credit{font-size:11px}
   }
-  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important; scroll-behavior:auto}}
 </style>
-
 </head>
 <body>
 <div class="bar" id="bar">
-  <button id="play" data-on="0" title="مسافة">تشغيل</button>
+  <button id="play" data-on="0">تشغيل</button>
   <button id="reset">من البداية</button>
-  <div class="grp">
-    <label for="spd">السرعة</label>
-    <input id="spd" type="range" min="10" max="140" step="2" value="46">
-    <span class="val" id="spdv">46</span>
-  </div>
-  <div class="grp">
-    <label for="siz">الخط</label>
-    <input id="siz" type="range" min="28" max="88" step="2" value="52">
-    <span class="val" id="sizv">52</span>
-  </div>
+  <div class="grp"><label for="spd">السرعة</label><input id="spd" type="range" min="10" max="140" step="2" value="46"><span class="val" id="spdv">46</span></div>
+  <div class="grp"><label for="siz">الخط</label><input id="siz" type="range" min="28" max="88" step="2" value="52"><span class="val" id="sizv">52</span></div>
   <button id="mir" data-on="0">عكس المرآة</button>
-  <button id="look">الألوان: داكن</button>
+  <button id="look">الألوان: منتصف الليل</button>
+  <button id="pin" data-on="0" hidden>فوق النوافذ</button>
   <button id="edit" data-on="0">تحرير النص</button>
   <button id="revert" hidden>استرجاع النص التجريبي</button>
   <button id="help" aria-label="طريقة الاستخدام" title="طريقة الاستخدام">؟</button>
@@ -185,21 +203,50 @@
 
 <div class="marker"></div>
 
-<div id="stage">
-<div id="flow">
+<div id="stage"><div id="flow">
 <p>أهلاً فيك في الملقّن العربي.</p>
 <p class="note">هذا نص تجريبي. اضغط «تحرير النص» فوق، امسحه، والصق نصك مكانه.</p>
-<p>اقرأ دائماً السطر اللي عند الخط الذهبي، وخل عينك قريبة من الكاميرا.</p>
+<p>اقرأ دائماً السطر اللي عند خط القراءة، وخل عينك قريبة من الكاميرا.</p>
 <p>الملقّن يمشي لحاله بسرعة ثابتة، وتقدر تسرّعه أو تبطّئه وأنت تقرأ بالأسهم.</p>
 <p>إذا تعثرت في جملة، وقّف بزر المسافة، خذ نفس، وكمّل من نفس المكان.</p>
-<p>ولو ركّبت الجوال أو الشاشة على زجاج ملقّن حقيقي، شغّل «عكس المرآة» عشان يطلع النص معدول.</p>
+<p>ولو تصوّر بالكاميرا فوق الشاشة، صغّر النافذة وقرّبها من العدسة.</p>
 <p>الشاشة تبقى مضاءة طول التشغيل، فما تنطفي عليك في نص التصوير.</p>
-<p>ونصك يُحفظ في متصفحك أنت فقط، وما يطلع لأي أحد.</p>
+<p>ونصك يُحفظ على جهازك أنت فقط، وما يطلع لأي أحد.</p>
 <p>جرّب الحين: اضغط «تشغيل» واقرأ معي بصوت عالي.</p>
 <p>بالتوفيق في تصويرك.</p>
 <div class="end">انتهى</div>
-</div>
-</div>
+</div></div>
+
+<div class="credit">مطوّر بواسطة <svg class="yahya-signature" xmlns="http://www.w3.org/2000/svg" viewBox="-8 -8 1492 116" role="img" aria-label="YAHYA ALDORAIBI">
+<g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="butt" stroke-linejoin="miter">
+<path transform="translate(0 0)" d="M0,0 L48,50"/>
+<path transform="translate(0 0)" d="M96,0 L48,50 L48,100"/>
+<path transform="translate(126 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(126 0)" d="M18,64 L70,64"/>
+<path transform="translate(244 0)" d="M0,0 V100"/>
+<path transform="translate(244 0)" d="M78,0 V100"/>
+<path transform="translate(244 0)" d="M0,50 H78"/>
+<path transform="translate(352 0)" d="M0,0 L48,50"/>
+<path transform="translate(352 0)" d="M96,0 L48,50 L48,100"/>
+<path transform="translate(478 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(478 0)" d="M18,64 L70,64"/>
+<path transform="translate(676 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(676 0)" d="M18,64 L70,64"/>
+<path transform="translate(794 0)" d="M0,0 V100 H62"/>
+<path transform="translate(886 0)" d="M0,0 V100"/>
+<path transform="translate(886 0)" d="M0,0 H30 C92,0 92,100 30,100 H0"/>
+<path transform="translate(994 0)" d="M100,50 A50,50 0 1 1 0,50 A50,50 0 1 1 100,50"/>
+<path transform="translate(1124 0)" d="M0,100 V0"/>
+<path transform="translate(1124 0)" d="M0,0 H40 C78,0 78,54 40,54 H0"/>
+<path transform="translate(1124 0)" d="M36,54 L74,100"/>
+<path transform="translate(1228 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(1228 0)" d="M18,64 L70,64"/>
+<path transform="translate(1346 0)" d="M0,0 V100"/>
+<path transform="translate(1376 0)" d="M0,0 V100"/>
+<path transform="translate(1376 0)" d="M0,0 H36 C68,0 68,48 36,48 H0"/>
+<path transform="translate(1376 0)" d="M0,48 H40 C76,48 76,100 40,100 H0"/>
+<path transform="translate(1476 0)" d="M0,0 V100"/>
+</g></svg></div>
 
 <dialog id="guide" aria-labelledby="gtitle">
   <div class="dlg">
@@ -207,19 +254,49 @@
     <p class="lede">شاشة تمرّر نصك ببطء وأنت تصوّر، عشان تتكلم للكاميرا بدون ما تحفظ.</p>
     <ol class="steps">
       <li><span>اضغط <b>«تحرير النص»</b>، امسح النص التجريبي، والصق نصك. اضغط <b>«إنهاء التحرير»</b> ليُحفظ.</span></li>
-      <li><span>اضبط <b>السرعة</b> و<b>حجم الخط</b> من الشريط فوق.</span></li>
-      <li><span>اضغط <b>«تشغيل»</b> واقرأ السطر اللي عند الخط الذهبي.</span></li>
+      <li><span>اضبط <b>السرعة</b> و<b>حجم الخط</b> و<b>الألوان</b> من الشريط فوق.</span></li>
+      <li><span>اضغط <b>«تشغيل»</b> واقرأ السطر اللي عند خط القراءة.</span></li>
       <li><span>تصوّر عبر زجاج ملقّن؟ فعّل <b>«عكس المرآة»</b>.</span></li>
     </ol>
     <div class="keys">
       <kbd>مسافة</kbd><span>تشغيل / إيقاف</span>
       <kbd>↑ ↓</kbd><span>أسرع / أبطأ أثناء القراءة</span>
     </div>
-    <p class="privacy"><b>نصك يبقى عندك.</b> يُحفظ داخل متصفحك على جهازك فقط، ولا يُرسل لأي مكان. لو فتحت الصفحة من جهاز ثاني بتلقى النص التجريبي.</p>
+    <p class="privacy"><b>نصك يبقى عندك.</b> يُحفظ على جهازك فقط، ولا يُرسل لأي مكان.</p>
     <div class="dlg-foot">
-      <small>أداة مجانية من يحيى · <a href="https://github.com/aldoraibi/mulaqqin/releases/latest">نسخة الماك</a> · <a href="https://github.com/aldoraibi/mulaqqin">المصدر</a></small>
+      <div class="credit">مطوّر بواسطة <svg class="yahya-signature" xmlns="http://www.w3.org/2000/svg" viewBox="-8 -8 1492 116" role="img" aria-label="YAHYA ALDORAIBI">
+<g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="butt" stroke-linejoin="miter">
+<path transform="translate(0 0)" d="M0,0 L48,50"/>
+<path transform="translate(0 0)" d="M96,0 L48,50 L48,100"/>
+<path transform="translate(126 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(126 0)" d="M18,64 L70,64"/>
+<path transform="translate(244 0)" d="M0,0 V100"/>
+<path transform="translate(244 0)" d="M78,0 V100"/>
+<path transform="translate(244 0)" d="M0,50 H78"/>
+<path transform="translate(352 0)" d="M0,0 L48,50"/>
+<path transform="translate(352 0)" d="M96,0 L48,50 L48,100"/>
+<path transform="translate(478 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(478 0)" d="M18,64 L70,64"/>
+<path transform="translate(676 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(676 0)" d="M18,64 L70,64"/>
+<path transform="translate(794 0)" d="M0,0 V100 H62"/>
+<path transform="translate(886 0)" d="M0,0 V100"/>
+<path transform="translate(886 0)" d="M0,0 H30 C92,0 92,100 30,100 H0"/>
+<path transform="translate(994 0)" d="M100,50 A50,50 0 1 1 0,50 A50,50 0 1 1 100,50"/>
+<path transform="translate(1124 0)" d="M0,100 V0"/>
+<path transform="translate(1124 0)" d="M0,0 H40 C78,0 78,54 40,54 H0"/>
+<path transform="translate(1124 0)" d="M36,54 L74,100"/>
+<path transform="translate(1228 0)" d="M0,100 L44,0 L88,100"/>
+<path transform="translate(1228 0)" d="M18,64 L70,64"/>
+<path transform="translate(1346 0)" d="M0,0 V100"/>
+<path transform="translate(1376 0)" d="M0,0 V100"/>
+<path transform="translate(1376 0)" d="M0,0 H36 C68,0 68,48 36,48 H0"/>
+<path transform="translate(1376 0)" d="M0,48 H40 C76,48 76,100 40,100 H0"/>
+<path transform="translate(1476 0)" d="M0,0 V100"/>
+</g></svg></div>
       <button id="go">ابدأ</button>
     </div>
+    <small class="links"><a href="https://github.com/aldoraibi/mulaqqin/releases/latest">نسخة الماك</a> · <a href="https://github.com/aldoraibi/mulaqqin">المصدر</a></small>
   </div>
 </dialog>
 
@@ -228,92 +305,48 @@
   var $=function(id){return document.getElementById(id);};
   var stage=$('stage'),flow=$('flow'),bar=$('bar');
   var play=$('play'),reset=$('reset'),spd=$('spd'),spdv=$('spdv'),siz=$('siz'),sizv=$('sizv');
-  var mir=$('mir'),look=$('look'),clock=$('clock'),edit=$('edit'),revert=$('revert');
+  var mir=$('mir'),look=$('look'),pin=$('pin'),clock=$('clock'),edit=$('edit'),revert=$('revert');
   var guide=$('guide'),help=$('help'),go=$('go');
-  var on=false,last=0,carry=0,t0=0,elapsed=0,raf=null;
+  var on=false,last=0,carry=0,t0=0,elapsed=0,raf=null,pendingLook=null;
   var KEY='mulaqqin-text-v1', PREF='mulaqqin-prefs-v1', SEEN='mulaqqin-seen-v1';
   var ORIGINAL=flow.innerHTML;
-  var pendingLook=null;
+  var native=window.webkit && window.webkit.messageHandlers;
+  function post(n,v){ try{ if(native && native[n]) native[n].postMessage(v); }catch(e){} }
+  function iso(t){ return '⁧'+t+'⁩'; }
 
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
   function del(k){ try{ localStorage.removeItem(k); }catch(e){} }
-
-  function toast(msg){
+  function toast(msg,warn){
     var d=document.createElement('div'); d.className='toast'; d.textContent=msg;
+    if(warn) d.dataset.warn='1';
     document.body.appendChild(d); setTimeout(function(){ d.remove(); },1800);
   }
 
-  // مساحة الشريط العلوي (يلتف على الجوال لعدة أسطر)
   function fitBar(){ document.documentElement.style.setProperty('--barh', bar.offsetHeight+'px'); }
   fitBar();
-  if('ResizeObserver' in window){ new ResizeObserver(fitBar).observe(bar); }
-  else window.addEventListener('resize',fitBar);
+  if('ResizeObserver' in window) new ResizeObserver(fitBar).observe(bar); else window.addEventListener('resize',fitBar);
 
-  // استعادة النص والإعدادات
   var saved=get(KEY);
   if(saved){ flow.innerHTML=saved; revert.hidden=false; }
   try{
     var p=JSON.parse(get(PREF)||'{}');
-    if(p.spd){ spd.value=p.spd; }
-    if(p.siz){ siz.value=p.siz; }
+    if(p.spd) spd.value=p.spd;
+    if(p.siz) siz.value=p.siz;
     if(p.mir){ flow.classList.add('mirror'); mir.dataset.on='1'; }
     if(p.look) pendingLook=p.look;
   }catch(e){}
-  spdv.textContent=spd.value; sizv.textContent=siz.value;
-  flow.style.setProperty('--fs', siz.value+'px');
-  function savePrefs(){ set(PREF, JSON.stringify({spd:+spd.value, siz:+siz.value, mir:flow.classList.contains('mirror'), look:(look.dataset.look||'dark')})); }
+  function applySize(){ sizv.textContent=iso(siz.value); flow.style.setProperty('--fs', siz.value+'px'); }
+  spdv.textContent=iso(spd.value); applySize();
+  function savePrefs(){ set(PREF, JSON.stringify({spd:+spd.value, siz:+siz.value,
+    mir:flow.classList.contains('mirror'), look:(look.dataset.look||'dark')})); }
 
-  // إبقاء الشاشة مضاءة أثناء التشغيل
-  var wl=null;
-  function wake(){
-    if(!('wakeLock' in navigator) || wl) return;
-    navigator.wakeLock.request('screen').then(function(l){ wl=l; l.addEventListener('release',function(){ wl=null; }); }).catch(function(){});
-  }
-  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && on) wake(); });
-
-  function fmt(s){var m=Math.floor(s/60),r=Math.floor(s%60); return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
-
-  function tick(now){
-    if(!on) return;
-    var dt=(now-last)/1000; last=now;
-    carry += (+spd.value)*dt;
-    var step=Math.floor(carry);
-    if(step){ stage.scrollTop += step; carry-=step; }
-    elapsed=(now-t0)/1000; clock.textContent=fmt(elapsed);
-    if(stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2){ stop(); return; }
-    raf=requestAnimationFrame(tick);
-  }
-  function start(){
-    if(flow.getAttribute('contenteditable')==='true') finishEdit();
-    on=true; play.textContent='إيقاف'; play.dataset.on='1';
-    last=performance.now(); t0=last-elapsed*1000;
-    wake(); raf=requestAnimationFrame(tick);
-  }
-  function stop(){
-    on=false; play.textContent='تشغيل'; play.dataset.on='0';
-    if(raf) cancelAnimationFrame(raf);
-  }
-  function toStart(){ stop(); stage.scrollTop=0; carry=0; elapsed=0; clock.textContent='00:00'; }
-
-  play.addEventListener('click',function(){ on?stop():start(); });
-  reset.addEventListener('click',toStart);
-  spd.addEventListener('input',function(){ spdv.textContent=spd.value; savePrefs(); });
-  siz.addEventListener('input',function(){ sizv.textContent=siz.value; flow.style.setProperty('--fs', siz.value+'px'); savePrefs(); });
-  mir.addEventListener('click',function(){
-    var m=flow.classList.toggle('mirror'); mir.dataset.on=m?'1':'0'; savePrefs();
-  });
-
-  // التحرير
-
-  // ألوان النص والخلفية
-  var LOOKS=[['dark','داكن'],['light','فاتح'],['amber','عنبري'],['green','أخضر']];
+  var LOOKS=[['dark','منتصف الليل'],['light','فاتح'],['amber','عنبري'],['green','أخضر']];
   function applyLook(name){
     var i=0; for(var k=0;k<LOOKS.length;k++) if(LOOKS[k][0]===name) i=k;
     if(LOOKS[i][0]==='dark') document.documentElement.removeAttribute('data-look');
     else document.documentElement.setAttribute('data-look', LOOKS[i][0]);
-    look.textContent='الألوان: '+LOOKS[i][1];
-    look.dataset.look=LOOKS[i][0];
+    look.textContent='الألوان: '+LOOKS[i][1]; look.dataset.look=LOOKS[i][0];
   }
   look.addEventListener('click',function(){
     var cur=look.dataset.look||'dark', i=0;
@@ -322,53 +355,84 @@
   });
   applyLook(pendingLook||'dark');
 
-  function startEdit(){
-    stop(); flow.setAttribute('contenteditable','true');
-    edit.textContent='إنهاء التحرير'; edit.dataset.on='1'; flow.focus();
+  var wl=null;
+  function wake(onoff){
+    post('wake', onoff);
+    if(!('wakeLock' in navigator)) return;
+    if(onoff && !wl) navigator.wakeLock.request('screen').then(function(l){ wl=l; l.addEventListener('release',function(){ wl=null; }); }).catch(function(){});
+    if(!onoff && wl){ wl.release().catch(function(){}); wl=null; }
   }
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && on) wake(true); });
+
+  function fmt(s){var m=Math.floor(s/60),r=Math.floor(s%60); return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+  function tick(now){
+    if(!on) return;
+    var dt=(now-last)/1000; last=now;
+    carry += (+spd.value)*dt;
+    var step=Math.floor(carry);
+    if(step){ stage.scrollTop += step; carry-=step; }
+    elapsed=(now-t0)/1000; clock.textContent=iso(fmt(elapsed));
+    if(stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2){ stop(); return; }
+    raf=requestAnimationFrame(tick);
+  }
+  function start(){
+    if(flow.getAttribute('contenteditable')==='true') finishEdit();
+    on=true; play.textContent='إيقاف'; play.dataset.on='1'; document.body.dataset.playing='1';
+    last=performance.now(); t0=last-elapsed*1000;
+    wake(true); raf=requestAnimationFrame(tick);
+  }
+  function stop(){
+    on=false; play.textContent='تشغيل'; play.dataset.on='0'; document.body.dataset.playing='0';
+    if(raf) cancelAnimationFrame(raf); wake(false);
+  }
+  function toStart(){ stop(); stage.scrollTop=0; carry=0; elapsed=0; clock.textContent=iso('00:00'); }
+  clock.textContent=iso('00:00');
+
+  play.addEventListener('click',function(){ on?stop():start(); });
+  reset.addEventListener('click',toStart);
+  spd.addEventListener('input',function(){ spdv.textContent=iso(spd.value); savePrefs(); });
+  siz.addEventListener('input',function(){ applySize(); savePrefs(); });
+  mir.addEventListener('click',function(){ var m=flow.classList.toggle('mirror'); mir.dataset.on=m?'1':'0'; savePrefs(); });
+
+  if(native && native.pin){ pin.hidden=false; pin.addEventListener('click',function(){ post('pin',true); }); }
+  window.__setPinned=function(v){ pin.dataset.on=v?'1':'0'; };
+  window.__size=function(d){ siz.value=Math.max(28,Math.min(88,+siz.value+d)); applySize(); savePrefs(); };
+
+  function startEdit(){ stop(); flow.setAttribute('contenteditable','true'); edit.textContent='إنهاء التحرير'; edit.dataset.on='1'; flow.focus(); }
   function finishEdit(){
-    flow.setAttribute('contenteditable','false');
-    edit.textContent='تحرير النص'; edit.dataset.on='0';
-    if(set(KEY, flow.innerHTML)){ revert.hidden=false; toast('حُفظ نصك في هذا المتصفح'); }
-    else toast('المتصفح منع الحفظ — انسخ نصك احتياطاً');
+    flow.setAttribute('contenteditable','false'); edit.textContent='تحرير النص'; edit.dataset.on='0';
+    if(set(KEY, flow.innerHTML)){ revert.hidden=false; toast('حُفظ نصك'); }
+    else toast('تعذّر الحفظ — انسخ نصك احتياطاً', true);
   }
   edit.addEventListener('click',function(){ flow.getAttribute('contenteditable')==='true' ? finishEdit() : startEdit(); });
 
-  // اللصق كنص عادي: كل سطر فقرة، بدون تنسيقات المصدر
   flow.addEventListener('paste',function(e){
-    var t=(e.clipboardData||window.clipboardData);
-    if(!t) return;
+    var t=e.clipboardData; if(!t) return;
     e.preventDefault();
-    var text=t.getData('text/plain')||'';
-    var html=text.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean)
+    var html=(t.getData('text/plain')||'').split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean)
       .map(function(l){ var d=document.createElement('p'); d.textContent=l; return d.outerHTML; }).join('');
-    document.execCommand('insertHTML', false, html||'');
+    document.execCommand('insertHTML', false, html);
   });
 
   var armed=false, armTimer=null;
   revert.addEventListener('click',function(){
-    if(!armed){
-      armed=true; revert.textContent='اضغط مرة ثانية لمسح نصك';
-      clearTimeout(armTimer);
-      armTimer=setTimeout(function(){ armed=false; revert.textContent='استرجاع النص التجريبي'; },5000);
-      return;
-    }
+    if(!armed){ armed=true; revert.textContent='اضغط مرة ثانية لمسح نصك'; clearTimeout(armTimer);
+      armTimer=setTimeout(function(){ armed=false; revert.textContent='استرجاع النص التجريبي'; },5000); return; }
     armed=false; revert.textContent='استرجاع النص التجريبي';
     flow.innerHTML=ORIGINAL; del(KEY); revert.hidden=true; toStart(); toast('رجع النص التجريبي');
   });
 
-  // الاختصارات
   document.addEventListener('keydown',function(e){
     if(flow.getAttribute('contenteditable')==='true' || guide.open) return;
     if(e.target && e.target.tagName==='BUTTON' && (e.code==='Space'||e.key==='Enter')) return;
     if(e.code==='Space'){ e.preventDefault(); on?stop():start(); }
-    if(e.key==='ArrowUp'){ e.preventDefault(); spd.value=Math.min(140,+spd.value+4); spdv.textContent=spd.value; savePrefs(); }
-    if(e.key==='ArrowDown'){ e.preventDefault(); spd.value=Math.max(10,+spd.value-4); spdv.textContent=spd.value; savePrefs(); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); spd.value=Math.min(140,+spd.value+4); spdv.textContent=iso(spd.value); savePrefs(); }
+    if(e.key==='ArrowDown'){ e.preventDefault(); spd.value=Math.max(10,+spd.value-4); spdv.textContent=iso(spd.value); savePrefs(); }
   });
 
-  // طريقة الاستخدام: تظهر أول زيارة، وتنفتح من زر ؟
-  function openGuide(){ stop(); if(guide.showModal){ try{ guide.showModal(); }catch(e){ guide.setAttribute('open',''); } } else guide.setAttribute('open',''); }
-  function closeGuide(){ if(guide.close) guide.close(); else guide.removeAttribute('open'); set(SEEN,'1'); }
+  function openGuide(){ stop(); try{ guide.showModal(); }catch(e){ guide.setAttribute('open',''); } }
+  function closeGuide(){ try{ guide.close(); }catch(e){ guide.removeAttribute('open'); } set(SEEN,'1'); }
+  window.__openGuide=openGuide;
   help.addEventListener('click',openGuide);
   go.addEventListener('click',closeGuide);
   guide.addEventListener('close',function(){ set(SEEN,'1'); });
@@ -376,6 +440,5 @@
   if(!get(SEEN)) openGuide();
 })();
 </script>
-
 </body>
 </html>

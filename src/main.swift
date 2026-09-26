@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         web.setValue(false, forKey: "drawsBackground")
         web.allowsMagnification = false
 
-        let bg = NSColor(srgbRed: 0x0A/255, green: 0x0C/255, blue: 0x0A/255, alpha: 1)
+        let bg = NSColor(srgbRed: 0x0E/255, green: 0x13/255, blue: 0x1C/255, alpha: 1)
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 760),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)

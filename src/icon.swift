@@ -14,9 +14,9 @@ let body = NSRect(x: inset, y: inset, width: S - 2*inset, height: S - 2*inset)
 let shape = NSBezierPath(roundedRect: body, xRadius: 185, yRadius: 185)
 NSGraphicsContext.current!.saveGraphicsState()
 let sh = NSShadow(); sh.shadowColor = c(0x000000, 0.45); sh.shadowBlurRadius = 28; sh.shadowOffset = NSSize(width: 0, height: -12); sh.set()
-NSGradient(starting: c(0x1A1E19), ending: c(0x070907))!.draw(in: shape, angle: -90)
+NSGradient(starting: c(0x2A3242), ending: c(0x0E131C))!.draw(in: shape, angle: -90)
 NSGraphicsContext.current!.restoreGraphicsState()
-c(0x2A3027).setStroke(); shape.lineWidth = 3; shape.stroke()
+c(0xBECDE6, 0.14).setStroke(); shape.lineWidth = 3; shape.stroke()
 
 shape.addClip()
 // أسطر النص: فوق الخط باهتة، عند الخط واضحة، تحته متوسطة — محاذاة يمين
@@ -28,14 +28,14 @@ let lines: [(y: CGFloat, w: CGFloat, alpha: CGFloat, h: CGFloat)] = [
 ]
 for l in lines {
     let r = NSRect(x: right - l.w, y: l.y, width: l.w, height: l.h)
-    c(0xF3F1EC, l.alpha).setFill()
+    c(0xEEF2F8, l.alpha).setFill()
     NSBezierPath(roundedRect: r, xRadius: l.h/2, yRadius: l.h/2).fill()
 }
 // خط القراءة الذهبي مع المثلثين
 let ly: CGFloat = 512
-c(0xD8A23B, 0.75).setFill()
+c(0xDCE4F0, 0.80).setFill()
 NSRect(x: body.minX, y: ly - 4, width: body.width, height: 8).fill()
-c(0xD8A23B).setFill()
+c(0xDCE4F0).setFill()
 let t1 = NSBezierPath(); t1.move(to: NSPoint(x: body.minX, y: ly - 38)); t1.line(to: NSPoint(x: body.minX + 58, y: ly)); t1.line(to: NSPoint(x: body.minX, y: ly + 38)); t1.close(); t1.fill()
 let t2 = NSBezierPath(); t2.move(to: NSPoint(x: body.maxX, y: ly - 38)); t2.line(to: NSPoint(x: body.maxX - 58, y: ly)); t2.line(to: NSPoint(x: body.maxX, y: ly + 38)); t2.close(); t2.fill()
 
